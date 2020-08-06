@@ -1,76 +1,55 @@
-import * as THREE from 'three/build/three.module.js'
+import * as THREE from 'three/build/three.module.js';
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
-import {TrackballControls} from 'three/examples/jsm/controls/TrackballControls.js';
-import {CSS3DRenderer, CSS3DObject} from 'three/examples/jsm/renderers/CSS3DRenderer.js';
-
-var camera, scene, renderer;
-var controls;
-
-var Element = function (id, x, y, z, ry) {
-
-    var div = document.createElement('div');
-    div.style.width = '480px';
-    div.style.height = '360px';
-    div.style.backgroundColor = '#000';
-
-    var iframe = document.createElement('iframe');
-    iframe.style.width = '480px';
-    iframe.style.height = '360px';
-    iframe.style.border = '0px';
-    iframe.src = ['https://www.youtube.com/embed/', id, '?rel=0'].join('');
-    div.appendChild(iframe);
-
-    var object = new CSS3DObject(div);
-    object.position.set(x, y, z);
-    object.rotation.y = ry;
-
-    return object;
-
-};
+var camera, controls, scene, renderer;
 
 init();
+//render(); // remove when using next line for animation loop (requestAnimationFrame)
 animate();
 
 function init() {
 
-    var container = document.getElementById('container');
-
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 5000);
-    camera.position.set(500, 350, 750);
-
     scene = new THREE.Scene();
-
-    renderer = new CSS3DRenderer();
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
+    document.body.appendChild(renderer.domElement);
 
-    var group = new THREE.Group();
-    group.add(new Element('SJOz3qjfQXU', 0, 0, 240, 0));
-    group.add(new Element('Y2-xZ-1HE-Q', 240, 0, 0, Math.PI / 2));
-    group.add(new Element('IrydklNpcFI', 0, 0, -240, Math.PI));
-    group.add(new Element('9ubytEsCaS0', -240, 0, 0, -Math.PI / 2));
-    scene.add(group);
+    camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 45, 3000);
+    camera.position.set(-900, -200,-900);
 
-    controls = new TrackballControls(camera, renderer.domElement);
-    controls.rotateSpeed = 4;
+    // controls
+
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+
+    // world
+    var materialArray = [];
+    let texture_ft = new THREE.TextureLoader().load('img/arid2_ft.jpg');
+    let texture_bk = new THREE.TextureLoader().load('img/arid2_bk.jpg');
+    let texture_up = new THREE.TextureLoader().load('img/arid2_up.jpg');
+    let texture_dn = new THREE.TextureLoader().load('img/arid2_dn.jpg');
+    let texture_rt = new THREE.TextureLoader().load('img/arid2_rt.jpg');
+    let texture_lf = new THREE.TextureLoader().load('img/arid2_lf.jpg');
+
+    materialArray.push(new THREE.MeshBasicMaterial({map:texture_ft}));
+    materialArray.push(new THREE.MeshBasicMaterial({map:texture_bk}));
+    materialArray.push(new THREE.MeshBasicMaterial({map:texture_up}));
+    materialArray.push(new THREE.MeshBasicMaterial({map:texture_dn}));
+    materialArray.push(new THREE.MeshBasicMaterial({map:texture_rt}));
+    materialArray.push(new THREE.MeshBasicMaterial({map:texture_lf}));
+
+    for (let i = 0 ; i < 6; i++)
+        materialArray[i].side = THREE.BackSide;
+
+    var geometry = new THREE.BoxGeometry(1000, 1000, 1000, );
+
+    var mesh = new THREE.Mesh(geometry, materialArray);
+
+    scene.add(mesh);
+
 
     window.addEventListener('resize', onWindowResize, false);
-
-    // Block iframe events when dragging camera
-
-    var blocker = document.getElementById('blocker');
-    blocker.style.display = 'none';
-
-    controls.addEventListener('start', function () {
-
-        blocker.style.display = '';
-
-    });
-    controls.addEventListener('end', function () {
-
-        blocker.style.display = 'none';
-
-    });
 
 }
 
@@ -83,9 +62,8 @@ function onWindowResize() {
 }
 
 function animate() {
-
     requestAnimationFrame(animate);
-    controls.update();
+}
+function render() {
     renderer.render(scene, camera);
-
 }

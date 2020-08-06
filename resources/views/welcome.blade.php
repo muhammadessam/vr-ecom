@@ -20,9 +20,7 @@
     </style>
 </head>
 <body>
-<div id="container"></div>
-<div id="blocker"></div>
-
+<div id="app"></div>
 
 <script src="{{asset('js/app.js')}}"></script>
 <script src="{{asset('js/threemainApp.js')}}"></script>
